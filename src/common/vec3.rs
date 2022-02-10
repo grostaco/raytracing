@@ -95,6 +95,11 @@ impl Vec3 {
     pub fn random_unit_vector() -> Self {
         Self::random_in_unit_sphere().as_unit()
     }
+
+    pub fn near_zero(&self) -> bool {
+        const e: f64 = 1e-8;
+        self.0.abs() < e && self.1.abs() < e && self.2.abs() < e
+    }
 }
 
 ops_impl_for!(Neg => {

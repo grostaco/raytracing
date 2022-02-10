@@ -1,4 +1,5 @@
 use crate::common::{
+    material::Material,
     ray::Ray,
     vec3::{Point3, Vec3},
 };
@@ -8,11 +9,16 @@ use super::{hit_record::HitRecord, Hittable};
 pub struct Sphere {
     center: Point3,
     radius: f64,
+    material: Box<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64) -> Self {
-        Self { center, radius }
+    pub fn new(center: Point3, radius: f64, material: Box<dyn Material>) -> Self {
+        Self {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
@@ -40,6 +46,7 @@ impl Hittable for Sphere {
         let mut record = HitRecord {
             t: root,
             p: ray.at(root),
+            material: self.material,
             normal: Vec3::zeros(),
             front_face: false,
         };

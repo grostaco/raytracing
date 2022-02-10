@@ -1,4 +1,6 @@
-use std::{ops::{Add, Div, Mul, Neg, Sub}, io::{self, Write}};
+use std::{ops::{Add, Div, Mul, Neg, Sub, Range}, io::{self, Write}};
+
+use rand::{Rng, thread_rng};
 
 #[derive(Clone, Copy)]
 pub struct Vec3(pub f64, pub f64, pub f64);
@@ -20,6 +22,14 @@ impl Vec3 {
         Self(e0, e1, e2)
     }
 
+    pub fn random<R: Rng>(rng: R) -> Self {
+        Self::random_range(rng, 0.0..1.0)
+    }
+
+    pub fn random_range<R: Rng>(mut rng: R, range: Range<f64>) -> Self {
+        Self(rng.gen_range(range.clone()), rng.gen_range(range.clone()), rng.gen_range(range))
+    }
+
     pub fn zeros() -> Self {
         Self(0.0, 0.0, 0.0)
     }
@@ -30,10 +40,10 @@ impl Vec3 {
         let mut b = self.2;
 
         let scale = 1.0 / samples_per_pixel as f64;
-        r *= scale;
-        g *= scale;
-        b *= scale;
-
+        r = (r * scale).sqrt();
+        g = (g * scale).sqrt();
+        b = (b * scale).sqrt();
+        
         write!(
             image,
             "{} {} {}\n",
@@ -70,6 +80,20 @@ impl Vec3 {
 
     pub fn dot(&self, rhs: &Self) -> f64 {
         self.0 * rhs.0 + self.1 * rhs.1 + self.2 * rhs.2
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        let mut rng = thread_rng();
+        loop {
+            let p = Self::random_range(&mut rng, -1.0..1.0);
+            if p.length_squared() < 1.0 {
+                return p;
+            }
+        }
+    }
+
+    pub fn random_unit_vector() -> Self {
+        Self::random_in_unit_sphere().as_unit()
     }
 }
 

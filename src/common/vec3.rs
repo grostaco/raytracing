@@ -104,6 +104,13 @@ impl Vec3 {
         const E: f64 = 1e-8;
         self.0.abs() < E && self.1.abs() < E && self.2.abs() < E
     }
+
+    pub fn refract(&self, n: &Vec3, etai_over_etat: f64) -> Vec3 {
+        let cos_theta = self.dot(&-n).min(1.0);
+        let r_out_perp = (n * cos_theta + *self) * etai_over_etat;
+        let r_out_parallel = n * -(1.0 - r_out_perp.length_squared()).sqrt();
+        r_out_perp + r_out_parallel
+    }
 }
 
 ops_impl_for!(Neg => {

@@ -34,6 +34,10 @@ impl Vec3 {
         Self(0.0, 0.0, 0.0)
     }
 
+    pub fn reflect(&self, n: &Vec3) -> Vec3 {
+        self - &(n * self.dot(n) * 2.0)
+    }
+
     pub fn write_color<W: Write>(&self, mut image: W, samples_per_pixel: u32) -> io::Result<()> {
         let mut r = self.0;
         let mut g = self.1;
@@ -74,7 +78,7 @@ impl Vec3 {
         self.length_squared().sqrt()
     }
 
-    pub fn as_unit(&self) -> Self {
+    pub fn unit(&self) -> Self {
         self / self.length()
     }
 
@@ -93,12 +97,12 @@ impl Vec3 {
     }
 
     pub fn random_unit_vector() -> Self {
-        Self::random_in_unit_sphere().as_unit()
+        Self::random_in_unit_sphere().unit()
     }
 
     pub fn near_zero(&self) -> bool {
-        const e: f64 = 1e-8;
-        self.0.abs() < e && self.1.abs() < e && self.2.abs() < e
+        const E: f64 = 1e-8;
+        self.0.abs() < E && self.1.abs() < E && self.2.abs() < E
     }
 }
 
@@ -113,6 +117,13 @@ ops_impl_for!(Mul<f64> => {
     type Output = Vec3;
     fn mul(self, rhs: f64) -> Self::Output {
         Vec3(self.0 * rhs, self.1 * rhs, self.2 * rhs)
+    }
+}, Vec3, &Vec3);
+
+ops_impl_for!(Mul => {
+    type Output = Vec3;
+    fn mul(self, rhs: Self) -> Self::Output {
+        Vec3(self.0 * rhs.0, self.1 * rhs.1, self.2 * rhs.2)
     }
 }, Vec3, &Vec3);
 

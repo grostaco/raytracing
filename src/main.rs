@@ -1,6 +1,7 @@
 use common::{
+    material::{Lambertian, Metal},
     ray::Ray,
-    vec3::{Color, Point3, Vec3},
+    vec3::{Color, Point3},
 };
 use hittable::{hittable_list::HittableList, sphere::Sphere, Hittable};
 use rand::{thread_rng, Rng};
@@ -16,10 +17,12 @@ fn ray_color(ray: &Ray, world: &dyn Hittable, depth: u32) -> Color {
         return Color::zeros();
     }
     if let Some(rec) = world.hit(ray, 0.001, INFINITY) {
-        let target = rec.p + rec.normal + Vec3::random_in_unit_sphere();
-        return ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1) * 0.5;
+        if let Some((attentuation, scattered)) = rec.material.scatter(ray, &rec) {
+            return ray_color(&scattered, world, depth - 1) * attentuation;
+        }
+        return Color::zeros();
     }
-    let unit_dir = ray.direction().as_unit();
+    let unit_dir = ray.direction().unit();
     let t = 0.5 * (unit_dir.y() + 1.0);
     Color::new(1.0, 1.0, 1.0) * (1.0 - t) + Color::new(0.5, 0.7, 1.0) * t
 }
@@ -31,8 +34,32 @@ fn main() {
     let max_depth = 50;
 
     let mut world = HittableList::new();
-    world.add(Rc::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
-    world.add(Rc::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
+
+    let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
+    let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8)));
+    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2)));
+
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, 0.0, -1.0),
+        0.5,
+        material_center,
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        0.5,
+        material_left,
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(1.0, 0.0, -1.0),
+        0.5,
+        material_right,
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, -100.5, -1.0),
+        100.0,
+        material_ground,
+    )));
 
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as u32;

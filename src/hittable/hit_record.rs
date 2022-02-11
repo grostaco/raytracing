@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::common::{
     material::Material,
     ray::Ray,
@@ -7,7 +9,7 @@ use crate::common::{
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
-    pub material: Box<dyn Material>,
+    pub material: Rc<dyn Material>,
     pub t: f64,
     pub front_face: bool,
 }

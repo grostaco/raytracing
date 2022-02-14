@@ -38,6 +38,24 @@ impl Vec3 {
         self - &(n * self.dot(n) * 2.0)
     }
 
+    pub fn get_color_buf(&self, samples_per_pixel: u32) -> String {
+        let mut r = self.0;
+        let mut g = self.1;
+        let mut b = self.2;
+
+        let scale = 1.0 / samples_per_pixel as f64;
+        r = (r * scale).sqrt();
+        g = (g * scale).sqrt();
+        b = (b * scale).sqrt();
+        
+        format!(
+            "{} {} {}\n",
+            (r.clamp(0.0, 0.999) * 256.0) as u32,
+            (g.clamp(0.0, 0.999) * 256.0) as u32,
+            (b.clamp(0.0, 0.999) * 256.0) as u32
+        )
+    }
+
     pub fn write_color<W: Write>(&self, mut image: W, samples_per_pixel: u32) -> io::Result<()> {
         let mut r = self.0;
         let mut g = self.1;
@@ -57,11 +75,12 @@ impl Vec3 {
         )?;
         Ok(())
     }
-    /*
+    
 
-    fn x(&self) -> f64 {
+    pub fn x(&self) -> f64 {
         self.0
     }
+    /* 
     fn z(&self) -> f64 {
         self.2
     }
@@ -74,7 +93,7 @@ impl Vec3 {
         self.0 * self.0 + self.1 * self.1 + self.2 * self.2
     }
 
-    fn length(&self) -> f64 {
+    pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
 
@@ -86,6 +105,10 @@ impl Vec3 {
         self.0 * rhs.0 + self.1 * rhs.1 + self.2 * rhs.2
     }
 
+    pub fn cross(&self, rhs: &Self) -> Self {
+        Self::new(self.1 * rhs.2 - self.2 * rhs.1, self.2 * rhs.0 - self.0 * rhs.2, self.0 * rhs.1 - self.1 * rhs.0)
+    }
+
     pub fn random_in_unit_sphere() -> Self {
         let mut rng = thread_rng();
         loop {
@@ -93,6 +116,14 @@ impl Vec3 {
             if p.length_squared() < 1.0 {
                 return p;
             }
+        }
+    }
+
+    pub fn random_in_unit_disk() -> Self {
+        let mut rng = thread_rng();
+        loop {
+            let p = Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
+            if p.length_squared() < 1.0 { return p; }
         }
     }
 
@@ -154,3 +185,4 @@ ops_impl_for!(Sub => {
         Vec3(self.0 - rhs.0, self.1 - rhs.1, self.2 - rhs.2)    
     }
 }, Vec3, &Vec3);
+

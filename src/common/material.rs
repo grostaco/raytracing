@@ -34,7 +34,7 @@ impl Metal {
     pub fn new(albedo: Color, fuzz: f64) -> Self {
         Self {
             albedo,
-            fuzz: fuzz.max(1.0),
+            fuzz: fuzz.min(1.0),
         }
     }
 }
